@@ -12,37 +12,62 @@ Model name is converted to lowercase for the collection name:
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Literal
+from datetime import date
 
-# Example schemas (replace with your own):
+# Loan app schemas
 
+class Customer(BaseModel):
+    """
+    Customers collection schema
+    Collection name: "customer"
+    """
+    first_name: str = Field(..., description="Customer first name")
+    last_name: str = Field(..., description="Customer last name")
+    email: Optional[str] = Field(None, description="Email address")
+    phone: Optional[str] = Field(None, description="Phone number")
+    address: Optional[str] = Field(None, description="Street address")
+    city: Optional[str] = Field(None, description="City")
+    state: Optional[str] = Field(None, description="State/Province")
+    postal_code: Optional[str] = Field(None, description="Postal/ZIP code")
+    notes: Optional[str] = Field(None, description="Additional notes about the customer")
+
+class Partner(BaseModel):
+    """
+    Referral partners collection schema
+    Collection name: "partner"
+    """
+    name: str = Field(..., description="Partner business or agent name")
+    contact_name: Optional[str] = Field(None, description="Primary contact person")
+    email: Optional[str] = Field(None, description="Email address")
+    phone: Optional[str] = Field(None, description="Phone number")
+    commission_rate: float = Field(5.0, ge=0, le=100, description="Commission percentage on funded loan amount")
+    notes: Optional[str] = Field(None, description="Additional notes")
+
+class Loan(BaseModel):
+    """
+    Loans collection schema
+    Collection name: "loan"
+    """
+    customer_id: str = Field(..., description="Reference to customer _id as string")
+    partner_id: Optional[str] = Field(None, description="Reference to referral partner _id as string")
+    amount: float = Field(..., gt=0, description="Loan principal amount")
+    status: Literal["applied", "approved", "funded", "rejected", "closed"] = Field("applied", description="Current loan status")
+    application_date: Optional[date] = Field(None, description="Date the application was submitted")
+    funded_date: Optional[date] = Field(None, description="Date the loan was funded, if funded")
+    commission_amount: Optional[float] = Field(None, ge=0, description="Computed commission amount at time of funding")
+
+# Example schemas kept for reference (not used by the app but safe to keep if needed):
 class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+    name: str
+    email: str
+    address: str
+    age: Optional[int] = None
+    is_active: bool = True
 
 class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
-
-# Add your own schemas here:
-# --------------------------------------------------
-
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+    title: str
+    description: Optional[str] = None
+    price: float
+    category: str
+    in_stock: bool = True
